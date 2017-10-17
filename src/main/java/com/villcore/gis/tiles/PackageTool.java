@@ -29,7 +29,7 @@ public class PackageTool {
     byte[] emptyBytes = new byte[0]; //TODO
     Path path = Paths.get("tiles9");
 
-    public void generateLevelPackage(Path zDir, Path indexPath, Path mapPath) throws IOException {
+    public void generateLevelPackage(Path zDir, Path metaPath, Path indexPath, Path mapPath) throws IOException {
         if(!zDir.toFile().isDirectory()) {
             System.err.println(path.toAbsolutePath().toString() + " not a directory ...");
             return;
@@ -82,6 +82,13 @@ public class PackageTool {
         LOGGER.debug("xStart = {}, xEnd = {}, yStart = {}, yEnd = {}", new Object[]{
                 xStart, xEnd, yStart, yEnd
         });
+
+        RandomAccessFile metaFile = new RandomAccessFile(metaPath.toFile(), "rw");
+        metaFile.seek(0);
+        metaFile.writeInt(xStart);
+        metaFile.writeInt(xEnd);
+        metaFile.writeInt(yStart);
+        metaFile.writeInt(yEnd);
 
 
         long totalFileLen = (xEnd - xStart) * (yEnd - yStart) * INDEX_BLOCK_LEN;
@@ -175,14 +182,14 @@ public class PackageTool {
     }
     public static void main(String[] args) throws IOException {
         PackageTool packageTool = new PackageTool();
-//        packageTool.generateLevelPackage(Paths.get("H:\\beijing-osm-v2\\tiles9"), Paths.get("H:\\beijing-osm-v2\\tiles9\\9.index"), Paths.get("H:\\beijing-osm-v2\\tiles9\\9.map"));
+//        packageTool.generateLevelPackage(Paths.get("H:\\beijing-osm-v2\\tiles9"), Paths.get("H:\\beijing-osm-v2\\tiles9\\9.meta"), Paths.get("H:\\beijing-osm-v2\\tiles9\\9.index"), Paths.get("H:\\beijing-osm-v2\\tiles9\\9.map"));
 
 
-//        for(int i = 0; i <= 4; i++) {
-//            FilePosition filePosition = packageTool.getTilePosition(new RandomAccessFile(Paths.get("H:\\beijing-osm-v2\\tiles9\\9.index").toFile(), "rw"), 6, i);
-//            byte[] bytes = packageTool.getTileBytes(new RandomAccessFile(Paths.get("H:\\beijing-osm-v2\\tiles9\\9.map").toFile(), "rw"), filePosition);
-//            Files.write(Paths.get("H:\\beijing-osm-v2\\tiles9\\" + i + ".png"), bytes, StandardOpenOption.CREATE_NEW);
-//        }
+        for(int i = 0; i <= 4; i++) {
+            FilePosition filePosition = packageTool.getTilePosition(new RandomAccessFile(Paths.get("H:\\beijing-osm-v2\\tiles9\\9.index").toFile(), "rw"), 6, i);
+            byte[] bytes = packageTool.getTileBytes(new RandomAccessFile(Paths.get("H:\\beijing-osm-v2\\tiles9\\9.map").toFile(), "rw"), filePosition);
+            Files.write(Paths.get("H:\\beijing-osm-v2\\tiles9\\" + i + ".png"), bytes, StandardOpenOption.CREATE_NEW);
+        }
         //System.out.println("a.png".split("\\.")[0]);
     }
 }
