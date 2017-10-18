@@ -1,14 +1,21 @@
 package com.villcore.gis.tiles.server;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sun.deploy.net.HttpRequest.CONTENT_LENGTH;
+import static com.sun.deploy.net.HttpRequest.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+
 @ChannelHandler.Sharable
-public class TileRequestHandler extends SimpleChannelInboundHandler<HttpRequest> {
+public class TileRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TileRequestHandler.class);
 
     private String district;
@@ -18,17 +25,43 @@ public class TileRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
         String url = msg.uri();
+        //ctx.write(url);
+//        ctx.write(new DefaultHttpResponse(HTTP_1_1,
+//                HttpResponseStatus.BAD_REQUEST));
 
-        TileInfo tileInfo = parseTileInfo(url);
+//        System.out.println(url);
+//        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK,
+//                Unpooled.wrappedBuffer("OK OK OK OK".getBytes()));
+//
+//        response.headers().set(CONTENT_TYPE, "text/plain");
+//        response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
+//        response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+//        ctx.pipeline().writeAndFlush(response);
 
-        if(correctTile(tileInfo)) {
-            ctx.fireChannelRead(tileInfo);
-        } else {
+        try {
+            if(!url.contains("map_tiles")) {
+                ctx.fireChannelRead(InvalidRequest.INSTANCE);
+                return;
+            }
+            TileInfo tileInfo = parseTileInfo(url);
+
+            if (correctTile(tileInfo)) {
+                ctx.fireChannelRead(tileInfo);
+            } else {
+                ctx.fireChannelRead(InvalidRequest.INSTANCE);
+            }
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
             ctx.fireChannelRead(InvalidRequest.INSTANCE);
         }
     }
+
+//    @Override
+//    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+//        ctx.flush();
+//    }
 
     private boolean correctTile(TileInfo tileInfo) {
         if (tileInfo == null) {
@@ -55,6 +88,7 @@ public class TileRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
     }
 
     private TileInfo parseTileInfo(String url) {
+        LOGGER.debug(url);
         //"/map_tiles/beijing/18/215933/99476.png"
         String prefix = "/map_tiles/";
 

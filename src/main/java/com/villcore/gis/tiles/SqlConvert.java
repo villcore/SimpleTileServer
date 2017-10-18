@@ -9,9 +9,9 @@ import java.util.regex.Pattern;
 
 public class SqlConvert {
     public static void main(String[] args) throws IOException {
-        Path src = Paths.get("E:\\亦庄部署\\pms_yz\\pms_yz\\主变压器.sql");
+        Path src = Paths.get("E:\\亦庄部署\\pms_yz\\pms_yz\\刀闸、接地刀闸.sql");
         System.out.println(src.toFile().length());
-        Path dst = Paths.get("E:\\亦庄部署\\pms_yz\\pms_yz\\主变压器_correct.sql");
+        Path dst = Paths.get("E:\\亦庄部署\\pms_yz\\pms_yz\\刀闸、接地刀闸_correct.sql");
 
         Pattern pattern = Pattern.compile(",\\s{1}\\.\\d{1,2},");
 
@@ -50,6 +50,8 @@ public class SqlConvert {
 
                 if(sb.length() == 0) {
                     sb.append(line);
+                } else {
+                    sb.append(line.substring(s, e));
                 }
 //                System.out.println(sb.toString());
 //
