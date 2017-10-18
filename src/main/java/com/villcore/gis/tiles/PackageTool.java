@@ -113,7 +113,10 @@ public class PackageTool {
                     LOGGER.info("file [{}] doesn't exist ...", tileFile.getAbsolutePath().toString());
                 }
 
-                byte[] tileBytes = Files.readAllBytes(tilePath);
+                byte[] tileBytes = new byte[0];
+                if(tilePath.toFile().exists()) {
+                    tileBytes = Files.readAllBytes(tilePath);
+                }
 
                 byte[] block = new byte[INDEX_BLOCK_LEN];
                 ByteBuffer blockBuffer = ByteBuffer.wrap(block);
@@ -191,21 +194,26 @@ public class PackageTool {
     }
 
     public static void main(String[] args) throws IOException {
+        String dirName = "tiles12";
+        String root = "E:\\map_tiles\\" + dirName;
+        int zLevel = Integer.valueOf(dirName.replace("tiles", ""));
+
         PackageTool packageTool = new PackageTool();
-//        packageTool.generateLevelPackage(
-//                Paths.get("E:\\tiles9"),
-//                Paths.get("E:\\tiles9\\9.meta"),
-//                Paths.get("E:\\tiles9\\9.index"),
-//                Paths.get("E:\\tiles9\\9.map"));
+
+        packageTool.generateLevelPackage(
+                Paths.get(root),
+                Paths.get(root, zLevel + ".meta"),
+                Paths.get(root, zLevel + ".index"),
+                Paths.get(root, zLevel + ".map"));
 
 
-        for(int i = 0; i <= 6; i++) {
-            for(int j = 0; j <= 4; j++) {
-                FilePosition filePosition = packageTool.getTilePosition(new RandomAccessFile(Paths.get("E:\\tiles9\\9.index").toFile(), "rw"), 5, i, j);
-                byte[] bytes = packageTool.getTileBytes(new RandomAccessFile(Paths.get("E:\\tiles9\\9.map").toFile(), "rw"), filePosition);
-                Files.write(Paths.get("E:\\tiles9\\" + i + "-" + j + ".png"), bytes, StandardOpenOption.CREATE_NEW);
-            }
-        }
+//        for(int i = 0; i <= 6; i++) {
+//            for(int j = 0; j <= 4; j++) {
+//                FilePosition filePosition = packageTool.getTilePosition(new RandomAccessFile(Paths.get("E:\\tiles9\\9.index").toFile(), "rw"), 5, i, j);
+//                byte[] bytes = packageTool.getTileBytes(new RandomAccessFile(Paths.get("E:\\tiles9\\9.map").toFile(), "rw"), filePosition);
+//                Files.write(Paths.get("E:\\tiles9\\" + i + "-" + j + ".png"), bytes, StandardOpenOption.CREATE_NEW);
+//            }
+//        }
         //System.out.println("a.png".split("\\.")[0]);
     }
 }
