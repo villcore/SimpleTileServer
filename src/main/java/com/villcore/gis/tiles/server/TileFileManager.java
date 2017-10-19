@@ -33,8 +33,11 @@ public class TileFileManager {
     private int yStart;
     private int yEnd;
 
-    private MappedByteBuffer indexByteBuffer;
-    private MappedByteBuffer mapByteBuffer;
+    private ByteBuffer indexByteBuffer;
+    private ByteBuffer mapByteBuffer;
+
+    private boolean indexCache = true;
+    private boolean mapCache = true;
 
     public TileFileManager(int zLevel, Path curRoot) {
         this.zLevel = zLevel;
@@ -136,11 +139,29 @@ public class TileFileManager {
         FileChannel indexFileChannel = indexFile.getChannel();
         this.indexByteBuffer = indexFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, indexFile.length());
         LOGGER.debug("file size = {}, indexBuffer pos = {}, limit = {}", indexFile.length(), indexByteBuffer.position(), indexByteBuffer.limit());
+        if(indexCache) {
+            this.indexByteBuffer = cacheByteBuffer(this.indexByteBuffer);
+        }
     }
 
     private void readMap() throws IOException {
         RandomAccessFile mapFile = new RandomAccessFile(mapPath.toFile(), "r");
         FileChannel indexFileChannel = mapFile.getChannel();
         this.mapByteBuffer = indexFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, mapFile.length());
+        if (mapCache) {
+            this.mapByteBuffer = cacheByteBuffer(this.mapByteBuffer);
+        }
+    }
+
+    private ByteBuffer cacheByteBuffer(ByteBuffer src) {
+        int capcity = src.capacity();
+        ByteBuffer memByteBuffer = ByteBuffer.allocateDirect(capcity);
+
+        memByteBuffer.put(src);
+        return memByteBuffer;
+    }
+
+    public void close() {
+
     }
 }
